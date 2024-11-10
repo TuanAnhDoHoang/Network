@@ -1,5 +1,6 @@
 import ipaddress
 import sys
+import math
 
 def IP_analyst(IP):
     IP = str(IP)
@@ -77,20 +78,19 @@ def Subnet_division(IP, hosts):
         print("\nImpossible for this number of hosts division")
     
     return 0
-if(len(sys.argv) == 1): print('<commnad like> : python3 IPadd_handle.py <ip address handling needed>')
+if(len(sys.argv) == 1): print('<commnad like> : python3 IPadd_handle.py <xx.xx.xx.xx/yy>')
 else: 
     ip = sys.argv[1]
     ip = ipaddress.IPv4Network(ip)
     while True:
-        #Dạng 2: với 1 địa chỉ ip, cần chia ip đó cho 1 subnet, với số host yêu cầu (bài toán con của bài toán 3) 
+        #Dạng 2: với 1 địa chỉ ip, cần chia ip đó với số host yêu cầu (bài toán con của bài toán 3) 
         #Dạng 3: Công ty có 30 phòng, mỗi phòng cần 45 máy, chia subnet với một địa chỉ ip cho trước
         print('''
         ##################################
         \n1: IP class and subnetMask default.
         \n2: Subnet division (VLSM method)
         \n3: Subnets division  
-        \nYour choice: 
-
+        \nYour choice:
         ''')
         choice = int(input()) #number
         if choice == 1:
@@ -109,3 +109,16 @@ else:
                 \nThe First address: {subnets[1]}
                 \nBroadcast  : {subnets.broadcast_address}
                       ''')
+        if choice == 3:
+            num_subnet = input('\nNumber of subnet need to divide')
+            num_host = input('\nNumber of hosts per subnet needed')
+            n = math.ceil(math.log2(num_subnet))  # Num of bit for subnet
+            m = math.ceil(math.log2(num_host + 2)) # Num of bit for subnet hosts
+
+            int_mask = str(ip)[str(ip).find('/')+1:]
+            if(n+m <= (32-int_mask)) :
+                print("\nIt possible to divide")
+                
+            else:
+                print("\nImpossible for divide")
+            
