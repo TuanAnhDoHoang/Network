@@ -39,25 +39,26 @@ def mask_to_numHost(mask):
            return numHost
 def numhost_to_mask(numhost):
     # Return minium mask <int> can satisfy num of hosts needed
-    mask = 0
-    host = 0
-    bit_subnet = 0 #num of bits for subnet
-    bit_remainder = 0 #num of bit have been used for hosts
-    octet = 0 # num of octet have been used for hosts
-    total_host_available = 0
-
-    while (host + octet*255) - 2 < numhost:
-        host += pow(2, bit_remainder)
-        if bit_remainder == 7:
-            octet+=1
-            bit_remainder = 0 - 1 
-            host = 0 # Sum of hosts per octet
-        bit_remainder+=1
-    print('Bit for Host: ', bit_remainder)
-    total_host_available = (host + octet*255) - 2
-    print('Total host avaiable : ', total_host_available)
-    int_mask = 32 - (octet*8 + bit_remainder)
-    return int_mask , (octet*8 + bit_remainder)
+#    mask = 0
+#    host = 0
+#    bit_subnet = 0 #num of bits for subnet
+#    bit_remainder = 0 #num of bit have been used for hosts
+#    octet = 0 # num of octet have been used for hosts
+#    total_host_available = 0
+#
+#    while (host + octet*255) - 2 < numhost:
+#        host += pow(2, bit_remainder)
+#        if bit_remainder == 7:
+#            octet+=1
+#            bit_remainder = 0 - 1 
+#            host = 0 # Sum of hosts per octet
+#        bit_remainder+=1
+#    print('Bit for Host: ', bit_remainder)
+#    total_host_available = (host + octet*255) - 2
+#    print('Total host avaiable : ', total_host_available)
+#    int_mask = 32 - (octet*8 + bit_remainder)
+#    return int_mask , (octet*8 + bit_remainder)
+    return math.ceil(math.log2(numhost+2))
         
 def Subnet_division(IP, hosts):
     #IP form : xx.xx.xx.xx/subnetMask
@@ -69,9 +70,9 @@ def Subnet_division(IP, hosts):
     ip = str(IP)[:IP.find('/')]
     IP = ipaddress.IPv4Network(IP)
     if(hosts <= largest_host):
-        mask_avai, bits_host = numhost_to_mask(hosts)
+        bits_host = numhost_to_mask(hosts)
         jump = bits_host
-        ip = list(IP.subnets(new_prefix=mask_avai))
+        ip = list(IP.subnets(new_prefix=(32-bits_host)))
         #Return list subnets available with num of hosts needed
         return ip
     else:
@@ -110,15 +111,25 @@ else:
                 \nBroadcast  : {subnets.broadcast_address}
                       ''')
         if choice == 3:
-            num_subnet = input('\nNumber of subnet need to divide')
-            num_host = input('\nNumber of hosts per subnet needed')
+            num_subnet = int(input('\nNumber of subnet need to divide'))
+            num_host = int(input('\nNumber of hosts per subnet needed'))
             n = math.ceil(math.log2(num_subnet))  # Num of bit for subnet
             m = math.ceil(math.log2(num_host + 2)) # Num of bit for subnet hosts
 
-            int_mask = str(ip)[str(ip).find('/')+1:]
-            if(n+m <= (32-int_mask)) :
+            int_mask = int(str(ip)[str(ip).find('/')+1:])
+            if(n+m <= 32 - (32//int_mask)):
                 print("\nIt possible to divide")
-                
+                print(f'n: {n} , m: {m}')
+                print(f'Satisfy MAXIMMUM num of network address: {pow(2,n)} and num of Hosts/network: {pow(2,m) - 2}')
+                bit_host_subnet = m 
+                bit_net_subnet = 32 - m 
+                subnets = list(ip.subnets(new_prefix=bit_net_subnet)) 
+                for subnet in subnets:
+                    print(f'''
+                    \n{subnet}
+                    \nRange of IP avaiable : 
+                    \n{subnet[1]} -> {subnet[-2]}
+                    ''')
             else:
                 print("\nImpossible for divide")
             
